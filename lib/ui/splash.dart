@@ -5,30 +5,42 @@ import 'home.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
+
   const SplashScreen({super.key, required this.onToggleTheme});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: .72, end: 1).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    _scale = Tween<double>(
+      begin: .72,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _controller.forward();
-    Timer(const Duration(milliseconds: 2200), () {
+
+    _timer = Timer(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(onToggleTheme: widget.onToggleTheme),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              HomeScreen(onToggleTheme: widget.onToggleTheme),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
           transitionDuration: const Duration(milliseconds: 450),
         ),
       );
@@ -37,6 +49,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -57,13 +70,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   Container(
                     height: 104,
                     width: 104,
-                    decoration: const BoxDecoration(color: AppColors.spotifyGreen, shape: BoxShape.circle),
-                    child: const Icon(Icons.restaurant_menu_rounded, size: 54, color: AppColors.black),
+                    decoration: const BoxDecoration(
+                      color: AppColors.spotifyGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.restaurant_menu_rounded,
+                      size: 54,
+                      color: AppColors.black,
+                    ),
                   ),
                   const SizedBox(height: 22),
-                  const Text('RECEITAS', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 3)),
+                  const Text(
+                    'RECEITAS',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 3,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text('Seu próximo prato favorito.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Seu próximo prato favorito.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -55,31 +55,41 @@ class Receita {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'nome': nome,
-    'tipo': tipo,
-    'ingredientes': ingredientes,
-    'modoFazer': modoPreparo,
-    'img': imagemUrl,
-    if (custo.isNotEmpty)
-      'custoAproximado': double.tryParse(custo.replaceAll(',', '.')) ?? custo,
-  };
+  Map<String, dynamic> toJson() {
+    final parsedCost = double.tryParse(custo.trim().replaceAll(',', '.'));
+    return {
+      'nome': nome,
+      'tipo': tipo,
+      'ingredientes': ingredientes,
+      'modoFazer': modoPreparo,
+      'img': imagemUrl,
+      if (custo.trim().isNotEmpty)
+        'custoAproximado': parsedCost ?? custo.trim(),
+    };
+  }
 }
 
 class ReceitaApi {
   static const String baseUrl = 'https://receitasapi-b-2025.vercel.app';
 
+  static Uri _receitasUri() => Uri.parse('$baseUrl/receitas');
+
+  static Exception _apiError(String operation, http.Response response) {
+    final body = response.body.trim();
+    final detail = body.isEmpty ? 'sem detalhes do servidor' : body;
+    return Exception('$operation. HTTP ${response.statusCode}: $detail');
+  }
+
   static Future<List<Receita>> listar() async {
     final response = await http
-        .get(Uri.parse('$baseUrl/receitas'))
-        .timeout(const Duration(seconds: 20));
+        .get(_receitasUri(), headers: {'Accept': 'application/json'})
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Erro ao buscar receitas: HTTP ${response.statusCode}.');
+      throw _apiError('Erro ao buscar receitas', response);
     }
 
     final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
-
     final List<dynamic> items;
 
     if (decoded is List) {
@@ -90,7 +100,6 @@ class ReceitaApi {
           decoded['data'] ??
           decoded['results'] ??
           decoded['items'];
-
       if (candidate is List) {
         items = candidate;
       } else {
@@ -111,16 +120,17 @@ class ReceitaApi {
   static Future<void> criar(Receita receita) async {
     final response = await http
         .post(
-          Uri.parse('$baseUrl/receitas'),
-          headers: {'Content-Type': 'application/json; charset=UTF-8'},
+          _receitasUri(),
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json',
+          },
           body: jsonEncode(receita.toJson()),
         )
-        .timeout(const Duration(seconds: 20));
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'Não foi possível cadastrar. Status: ${response.statusCode}.',
-      );
+      throw _apiError('Não foi possível cadastrar', response);
     }
   }
 
@@ -131,16 +141,19 @@ class ReceitaApi {
 
     final response = await http
         .put(
-          Uri.parse('$baseUrl/receitas/${receita.id}'),
-          headers: {'Content-Type': 'application/json; charset=UTF-8'},
+          Uri.parse(
+            '$baseUrl/receitas/${Uri.encodeComponent(receita.id.toString())}',
+          ),
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json',
+          },
           body: jsonEncode(receita.toJson()),
         )
-        .timeout(const Duration(seconds: 20));
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'Não foi possível editar. Status: ${response.statusCode}.',
-      );
+      throw _apiError('Não foi possível editar', response);
     }
   }
 
@@ -150,13 +163,16 @@ class ReceitaApi {
     }
 
     final response = await http
-        .delete(Uri.parse('$baseUrl/receitas/${receita.id}'))
-        .timeout(const Duration(seconds: 20));
+        .delete(
+          Uri.parse(
+            '$baseUrl/receitas/${Uri.encodeComponent(receita.id.toString())}',
+          ),
+          headers: {'Accept': 'application/json'},
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'Não foi possível excluir. Status: ${response.statusCode}.',
-      );
+      throw _apiError('Não foi possível excluir', response);
     }
   }
 }

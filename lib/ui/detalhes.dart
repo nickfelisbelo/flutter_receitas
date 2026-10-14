@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import '../api.dart';
-
 import 'style/colors.dart';
 
 class RecipeDetailContent extends StatelessWidget {
   final Receita receita;
   final VoidCallback onClose;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const RecipeDetailContent({
     super.key,
     required this.receita,
     required this.onClose,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -30,7 +33,25 @@ class RecipeDetailContent extends StatelessWidget {
                     style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
                   ),
                 ),
-                IconButton(onPressed: onClose, icon: const Icon(Icons.close_rounded)),
+                if (onEdit != null)
+                  IconButton(
+                    tooltip: 'Editar receita',
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                  ),
+                if (onDelete != null)
+                  IconButton(
+                    tooltip: 'Excluir receita',
+                    onPressed: onDelete,
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                IconButton(
+                  onPressed: onClose,
+                  icon: const Icon(Icons.close_rounded),
+                ),
               ],
             ),
           ),
@@ -46,26 +67,54 @@ class RecipeDetailContent extends StatelessWidget {
                     width: double.infinity,
                   ),
                   const SizedBox(height: 16),
-                  Text(receita.nome, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800)),
+                  Text(
+                    receita.nome,
+                    style: const TextStyle(
+                      fontSize: 23,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 11,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.spotifyGreen,
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Text(
                       receita.tipo.toUpperCase(),
-                      style: const TextStyle(color: AppColors.black, fontWeight: FontWeight.w900, fontSize: 11),
+                      style: const TextStyle(
+                        color: AppColors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _section(context, Icons.shopping_basket_outlined, 'Ingredientes', receita.ingredientes),
+                  _section(
+                    context,
+                    Icons.shopping_basket_outlined,
+                    'Ingredientes',
+                    receita.ingredientes,
+                  ),
                   const SizedBox(height: 18),
-                  _section(context, Icons.soup_kitchen_outlined, 'Modo de preparo', receita.modoPreparo),
+                  _section(
+                    context,
+                    Icons.soup_kitchen_outlined,
+                    'Modo de preparo',
+                    receita.modoPreparo,
+                  ),
                   if (receita.custo.isNotEmpty) ...[
                     const SizedBox(height: 18),
-                    _section(context, Icons.payments_outlined, 'Custo aproximado', 'R\$ ${receita.custo}'),
+                    _section(
+                      context,
+                      Icons.payments_outlined,
+                      'Custo aproximado',
+                      'R\$ ${receita.custo}',
+                    ),
                   ],
                 ],
               ),
@@ -76,15 +125,25 @@ class RecipeDetailContent extends StatelessWidget {
     );
   }
 
-  Widget _section(BuildContext context, IconData icon, String title, String content) {
+  Widget _section(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String content,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(children: [
-          Icon(icon, color: AppColors.spotifyGreen),
-          const SizedBox(width: 8),
-          Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-        ]),
+        Row(
+          children: [
+            Icon(icon, color: AppColors.spotifyGreen),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -95,13 +154,15 @@ class RecipeDetailContent extends StatelessWidget {
                 : const Color(0xFFF0F0F0),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Text(content.isEmpty ? 'Não informado.' : content, style: const TextStyle(height: 1.5)),
+          child: Text(
+            content.isEmpty ? 'Não informado.' : content,
+            style: const TextStyle(height: 1.5),
+          ),
         ),
       ],
     );
   }
 }
-
 
 class ReceitaImage extends StatelessWidget {
   final String url;
@@ -144,7 +205,14 @@ class ReceitaImage extends StatelessWidget {
     color: const Color(0xFF303030),
     alignment: Alignment.center,
     child: loading
-        ? const CircularProgressIndicator(color: Color(0xFF1DB954), strokeWidth: 2)
-        : const Icon(Icons.restaurant_rounded, size: 42, color: Color(0xFFB3B3B3)),
+        ? const CircularProgressIndicator(
+            color: Color(0xFF1DB954),
+            strokeWidth: 2,
+          )
+        : const Icon(
+            Icons.restaurant_rounded,
+            size: 42,
+            color: Color(0xFFB3B3B3),
+          ),
   );
 }
